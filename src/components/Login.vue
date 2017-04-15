@@ -1,5 +1,5 @@
 <template>
-  <div id="wrapper" class="text-center">
+  <div id="wrapper" class="container text-center">
     <div id="loginBox" class="text-center">
       <img v-on:load="login" id="qrcode" src="/api/qrcode.png">
       <div id="tipText">
@@ -30,6 +30,7 @@
             }
           },
           response => {
+            console.error('get response error')
             console.log(response)
           }
         )
