@@ -1,40 +1,47 @@
 <template>
   <div class="container">
-    <div class="panel panel-default">
-      <div class="panel-body">
-        <div class="row">
-          <div class="col-sm-12 user-info">
-            <img v-bind:src="userAvatarSrc" class="avatar">
-            <span class="user-name">{{ userName }}</span>
-            <a class="pull-right" href="/api/logout">退出登录</a>
-          </div>
-        </div>
+    <div class="heading">
+      <div class="user-info">
+        <img :src="userAvatarSrc" class="avatar">
+        <span class="user-name">{{ userName }}</span>
       </div>
+      <!--<el-button type="danger" icon="el-icon-circle-close" class="logout-btn">关闭</el-button>-->
+      <el-button class="logout-btn" @click="logout" size="small">注销</el-button>
     </div>
-    <div class="row">
-      <div class="col-sm-4">
-        <div class="panel panel-default">
-          <div class="panel-heading"><span>群列表</span></div>
-          <div class="panel-body">
-            <group-box v-for="group in groups" v-bind:data-user-name="group.user_name" v-bind:group="group"
-                       v-bind:selected="selectedGroup" v-on:select="selectGroup"></group-box>
-          </div>
-        </div>
-      </div>
-      <div class="col-sm-8">
-        <div class="panel panel-default">
-          <div class="panel-heading"><span>群成员({{ groupMemberNumber }})</span></div>
-          <div class="panel-body">
-
-          </div>
-        </div>
-      </div>
-    </div>
+    <el-row :gutter="10">
+      <el-col :span="8">
+        <el-card v-loading.body="loadingGroups">
+          <div slot="header">群列表({{ groups.length }})</div>
+          <group-box v-for="group in groups" :key="group.user_name" :data-user-name="group.user_name" :group="group"
+                     :selectedGroup="selectedGroup" @select="selectGroup"></group-box>
+        </el-card>
+      </el-col>
+      <el-col :span="16">
+        <el-card v-loading.body="loadingMembers">
+          <el-tabs value="nonFriends">
+            <!--<el-tab-pane disabled=True>-->
+              <!--<span slot="label">{{ groupName }} ({{ groupMemberNumber }})</span>-->
+            <!--</el-tab-pane>-->
+            <el-tab-pane name="nonFriends">
+              <span slot="label">陌生人({{ nonFriends.length }})</span>
+              non friends
+            </el-tab-pane>
+            <el-tab-pane name="friends">
+              <span slot="label">好友({{ friends.length }})</span>
+              friends
+            </el-tab-pane>
+          </el-tabs>
+        </el-card>
+      </el-col>
+    </el-row>
     </div>
 </template>
 
 <script>
 import groupBox from './GroupBox.vue'
+import ElButton from '../../node_modules/element-ui/packages/button/src/button'
+import ElTabPane from '../../node_modules/element-ui/packages/tabs/src/tab-pane'
+
 export default {
   name: 'index',
   methods: {
@@ -52,9 +59,11 @@ export default {
       )
     },
     loadGroups: function () {
+      this.loadingGroups = true
       this.$http.get('/api/groups').then(
         response => {
           this.groups = response.data.groups
+          this.loadingGroups = false
         },
         response => {
           console.error('get response error')
@@ -64,14 +73,33 @@ export default {
     },
     selectGroup: function (div) {
       this.selectedGroup = div.dataset.userName
+      this.groupName = div.textContent
+      this.loadingMembers = true
       this.$http.get('/api/groups/' + this.selectedGroup + '/members').then(
         response => {
           let members = response.data.members
-          this.groupMemberNumber = members.length
+          this.nonFriends = members.filter(
+              member => {
+                return member.is_friend === false
+              }
+              )
+          this.friends = members.filter(
+              member => {
+                return member.is_friend
+              }
+              )
+          this.loadingMembers = false
         },
         response => {
           console.error('get response error')
           console.log(response)
+        }
+      )
+    },
+    logout: function () {
+      this.$http.get('/api/logout').then(
+        response => {
+          this.$router.push({path: 'login'})
         }
       )
     }
@@ -86,23 +114,42 @@ export default {
       userName: '',
       groups: [],
       selectedGroup: '',
-      groupMemberNumber: 0
+      groupName: '群成员',
+      nonFriends: [],
+      friends: [],
+      loadingGroups: false,
+      loadingMembers: false
     }
   },
   components: {
-    groupBox
+    ElTabPane, ElButton, groupBox
   }
 
 }
 </script>
 
 <style>
-  span {
-    font-size: 18px;
+  .container {
+    width: 70%;
+    min-width: 800px;
+    margin: 0 auto;
+  }
+
+  .heading {
+    display: flex;
+    background-color: #8492A6;
+    /*border-radius: 4px;*/
+    padding: 10px;
+    align-items: center;
+    align-content: space-between;
+    justify-content: space-between;
+    margin-bottom: 20px;
   }
 
   .user-info {
-    display: inline;
+    display: flex;
+    align-items: center;
+    font-size: 18px;
   }
 
   .avatar {
@@ -110,9 +157,15 @@ export default {
     height: 48px;
   }
 
+
   .user-name {
-    color: darkcyan;
+    color: #1F2D3D;
     margin-left: 10px;
+    vertical-align: middle;
+  }
+
+  .logout-btn {
+    font-size: 14px;
   }
 
 </style>

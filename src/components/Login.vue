@@ -1,8 +1,9 @@
 <template>
-  <div id="wrapper" class="container text-center">
-    <div id="loginBox" class="text-center">
-      <img v-on:load="login" id="qrcode" src="/api/qrcode.png">
+  <div id="wrapper">
+    <div id="loginBox">
+      <img @load="login" id="qrcode" src="/api/qrcode.png">
       <div id="tipText">
+        <p v-show="scanned">扫描成功</p>
         <p>{{ tipText }}</p>
       </div>
     </div>
@@ -23,6 +24,7 @@
             } else if (ret === '408') {
               this.login()
             } else if (ret === '201') {
+              this.scanned = true
               this.tipText = '请在手机上确认登录'
               this.login()
             } else {
@@ -38,17 +40,25 @@
     },
     data: function () {
       return {
-        tipText: '请用微信扫描二维码登录'
+        tipText: '请用微信扫描二维码登录',
+        scanned: false
       }
     }
   }
 </script>
 
 <style>
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
   #wrapper {
     width: 800px;
-    height: 600px;
+    height: 500px;
+    margin: 0;
     padding-top: 100px;
+    text-align: center;
     background-image: url("/static/bg.jpg");
   }
 

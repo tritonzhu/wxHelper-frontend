@@ -1,6 +1,6 @@
 <template>
-  <div class="group-info" v-on:click="select">
-      <img class="avatar" v-bind:src="avatarSrc">
+  <div class="group-info" :class="{ selected: isSelected }" @click="select">
+      <img class="avatar" :src="avatarSrc">
       <span class="group-name">{{ group.name }}</span>
   </div>
 </template>
@@ -8,10 +8,13 @@
 <script>
   export default {
     name: 'group-box',
-    props: ['group', 'selected'],
+    props: ['group', 'selectedGroup'],
     computed: {
       avatarSrc: function () {
         return '/api/groups/' + this.group.user_name + '/avatar'
+      },
+      isSelected: function () {
+        return this.group.user_name === this.selectedGroup
       }
     },
     methods: {
@@ -22,25 +25,19 @@
         }
         this.$emit('select', div)
       }
-    },
-    watch: {
-      selected: function (newSelected) {
-        if (this.group.user_name !== newSelected) {
-          this.$el.className = 'group-info'
-        } else {
-          this.$el.className = 'group-info selected'
-        }
-      }
     }
   }
 </script>
 
 <style>
   .group-info {
-    padding: 10px;
+    /*height: 60px;*/
+    padding: 5px;
     border-bottom: 1px solid darkgrey;
-    overflow-x: hidden;
-    background-color: aliceblue;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    /*background-color: aliceblue;*/
   }
 
   .group-info:hover {
@@ -49,7 +46,7 @@
   }
 
   .group-name {
-    font-size: 18px;
+    font-size: 16px;
     padding-left: 5px;
   }
 
