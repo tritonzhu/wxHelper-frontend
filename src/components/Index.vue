@@ -24,11 +24,13 @@
             <!--</el-tab-pane>-->
             <el-tab-pane name="nonFriends">
               <span slot="label">陌生人({{ nonFriends.length }})</span>
-              non friends
+              <div>
+              <user-box v-for="(user, index) in nonFriends" :key="user.user_name" :user="user" :index="index" :group="selectedGroup" @select="selectUser"></user-box>
+              </div>
             </el-tab-pane>
             <el-tab-pane name="friends">
               <span slot="label">好友({{ friends.length }})</span>
-              friends
+              <user-box v-for="user in friends" :key="user.user_name" :user="user" :group="selectedGroup" @select="selectUser"></user-box>
             </el-tab-pane>
           </el-tabs>
         </el-card>
@@ -41,10 +43,18 @@
 import groupBox from './GroupBox.vue'
 import ElButton from '../../node_modules/element-ui/packages/button/src/button'
 import ElTabPane from '../../node_modules/element-ui/packages/tabs/src/tab-pane'
+import userBox from './UserBox.vue'
 
 export default {
   name: 'index',
   methods: {
+    logout: function () {
+      this.$http.get('/api/logout').then(
+        response => {
+          this.$router.push({path: 'login'})
+        }
+      )
+    },
     loadFriends: function () {
       this.$http.get('/api/friends').then(
         response => {
@@ -96,12 +106,8 @@ export default {
         }
       )
     },
-    logout: function () {
-      this.$http.get('/api/logout').then(
-        response => {
-          this.$router.push({path: 'login'})
-        }
-      )
+    selectUser: function (div, isSelected) {
+
     }
   },
   mounted () {
@@ -122,7 +128,7 @@ export default {
     }
   },
   components: {
-    ElTabPane, ElButton, groupBox
+    userBox, ElTabPane, ElButton, groupBox
   }
 
 }
