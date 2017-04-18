@@ -56,7 +56,7 @@
   #wrapper {
     width: 800px;
     height: 500px;
-    margin: 0;
+    margin: 0 auto;
     padding-top: 100px;
     text-align: center;
     background-image: url("/static/bg.jpg");
