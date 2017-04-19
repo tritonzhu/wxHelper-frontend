@@ -19,11 +19,7 @@
     },
     methods: {
       select: function (event) {
-        let div = event.target
-        while (div.tagName.toLowerCase() !== 'div') {
-          div = div.parentNode
-        }
-        this.$emit('select', div)
+        this.$emit('select', this.group)
       }
     }
   }
@@ -32,6 +28,7 @@
 <style>
   .group-info {
     /*height: 60px;*/
+    color: #8492a6;
     padding: 5px;
     border-bottom: 1px solid darkgrey;
     display: flex;
@@ -42,7 +39,8 @@
 
   .group-info:hover {
     cursor: pointer;
-    background-color: rgba(100, 149, 237, 0.5)
+    color: #e5f9f2;
+    background-color: #1f2d3d;
   }
 
   .group-name {
@@ -51,6 +49,8 @@
   }
 
   .selected {
-    background-color: rgba(100, 149, 237, 0.9) !important;
+    color: #d3dce6;
+    background-color: #475669 !important;
   }
+
 </style>

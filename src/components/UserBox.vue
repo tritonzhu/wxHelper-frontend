@@ -1,13 +1,13 @@
 <template>
   <div class="friend-container">
-  <div class="friend-info" :class="{ selected: isSelected }" @click="select">
-    <img class="avatar" :src="avatarSrc">
-    <div class="friend-text">
-    <p class="friend-name">{{ user.name }}<br/>
-      <i :class="{ 'icon-men': user.sex === 1, 'icon-women': user.sex === 2 }"></i>
-      <span class="loc">{{ user.province }}&nbsp;{{ user.city }}</span></p>
+    <div class="friend-info" :class="{ selected: isSelected }" @click="select">
+      <img class="avatar" :src="avatarSrc">
+      <div class="friend-text">
+        <p class="friend-name">{{ user.name }}<br/>
+        <i :class="{ 'icon-men': user.sex === 1, 'icon-women': user.sex === 2 }"></i>
+        <span class="loc">{{ user.province }}&nbsp;{{ user.city }}</span></p>
+      </div>
     </div>
-  </div>
   </div>
 </template>
 
@@ -28,12 +28,8 @@
     },
     methods: {
       select: function (event) {
-        let div = event.target
-        while (div.tagName.toLowerCase() !== 'div') {
-          div = div.parentNode
-        }
         this.isSelected = !this.isSelected
-        this.$emit('select', div, this.isSelected)
+        this.$emit('select', this.user, this.isSelected)
       }
     },
     data: function () {
@@ -58,12 +54,14 @@
     display: flex;
     align-items: center;
     overflow: hidden;
-    background-color: aliceblue;
+    color: #324057;
+    background-color: #eff2f7;
   }
 
   .friend-info:hover {
     cursor: pointer;
-    background-color: rgba(100, 149, 237, 0.5)
+    color: #e5f9f2 !important;
+    background-color: #1f2d3d;
   }
 
   .friend-text {
@@ -71,7 +69,7 @@
     padding-left: 10px;
   }
 
-  .friend-text p {
+  .friend-name {
     font-size: 14px;
     overflow-x: hidden;
     text-overflow: ellipsis;
@@ -100,11 +98,12 @@
 
   .loc {
     font-size: 12px;
-    color: grey;
+    color: #99a9bf;
   }
 
   .selected {
-    background-color: rgba(100, 149, 237, 0.9) !important;
+    color: #d3dce6;
+    background-color: #475669 !important;
   }
 
 </style>

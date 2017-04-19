@@ -12,7 +12,7 @@
       <el-col :span="8">
         <el-card v-loading.body="loadingGroups">
           <div slot="header">群列表({{ groups.length }})</div>
-          <group-box v-for="group in groups" :key="group.user_name" :data-user-name="group.user_name" :group="group"
+          <group-box v-for="group in groups" :key="group.user_name" :group="group"
                      :selectedGroup="selectedGroup" @select="selectGroup"></group-box>
         </el-card>
       </el-col>
@@ -25,7 +25,7 @@
             <el-tab-pane name="nonFriends">
               <span slot="label">陌生人({{ nonFriends.length }})</span>
               <div>
-              <user-box v-for="(user, index) in nonFriends" :key="user.user_name" :user="user" :index="index" :group="selectedGroup" @select="selectUser"></user-box>
+              <user-box v-for="(user, index) in nonFriends" :key="user.user_name" :user="user" :data-user-name="user.user_name" :index="index" :group="selectedGroup" @select="selectUser"></user-box>
               </div>
             </el-tab-pane>
             <el-tab-pane name="friends">
@@ -81,9 +81,9 @@ export default {
         }
       )
     },
-    selectGroup: function (div) {
-      this.selectedGroup = div.dataset.userName
-      this.groupName = div.textContent
+    selectGroup: function (group) {
+      this.selectedGroup = group.user_name
+      this.groupName = group.name
       this.loadingMembers = true
       this.$http.get('/api/groups/' + this.selectedGroup + '/members').then(
         response => {
@@ -106,8 +106,16 @@ export default {
         }
       )
     },
-    selectUser: function (div, isSelected) {
-
+    selectUser: function (user, isSelected) {
+      if (isSelected) {
+        this.selectedUsers.push(user)
+      } else {
+        let index = this.selectedUsers.findIndex((u) => u.user_name === user.user_name)
+        if (index > -1) {
+          this.selectedUsers.splice(index, 1)
+        }
+      }
+      this.selectedUsers.forEach((u) => console.log(u.name))
     }
   },
   mounted () {
@@ -124,7 +132,8 @@ export default {
       nonFriends: [],
       friends: [],
       loadingGroups: false,
-      loadingMembers: false
+      loadingMembers: false,
+      selectedUsers: []
     }
   },
   components: {
