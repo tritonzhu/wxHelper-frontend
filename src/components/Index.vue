@@ -25,7 +25,7 @@
             <el-tab-pane name="nonFriends">
               <span slot="label">陌生人({{ nonFriends.length }})</span>
               <div>
-              <user-box v-for="(user, index) in nonFriends" :key="user.user_name" :user="user" :data-user-name="user.user_name" :index="index" :group="selectedGroup" @select="selectUser"></user-box>
+              <user-box v-for="(user, index) in nonFriends" ref="nonFriendsBox" :key="user.user_name" :user="user" :data-user-name="user.user_name" :index="index" :group="selectedGroup" @select="selectUser"></user-box>
               </div>
             </el-tab-pane>
             <el-tab-pane name="friends">
@@ -33,6 +33,10 @@
               <user-box v-for="user in friends" :key="user.user_name" :user="user" :group="selectedGroup" @select="selectUser"></user-box>
             </el-tab-pane>
           </el-tabs>
+          <div class="select-box">
+            <el-checkbox v-model="selectAll" @change="selectAllUsers">全选</el-checkbox>
+            <el-button size="small" type="primary" class="add-btn"> 加为好友</el-button>
+          </div>
         </el-card>
       </el-col>
     </el-row>
@@ -41,9 +45,10 @@
 
 <script>
 import groupBox from './GroupBox.vue'
-import ElButton from '../../node_modules/element-ui/packages/button/src/button'
-import ElTabPane from '../../node_modules/element-ui/packages/tabs/src/tab-pane'
+import ElButton from 'element-ui/packages/button/src/button'
+import ElTabPane from 'element-ui/packages/tabs/src/tab-pane'
 import userBox from './UserBox.vue'
+import ElCheckbox from 'element-ui/packages/checkbox/src/checkbox'
 
 export default {
   name: 'index',
@@ -115,7 +120,21 @@ export default {
           this.selectedUsers.splice(index, 1)
         }
       }
-      this.selectedUsers.forEach((u) => console.log(u.name))
+      console.log(this.selectedUsers)
+    },
+    selectAllUsers: function (event) {
+      if (this.selectAll) {
+        this.nonFriends.forEach((u) => this.selectedUsers.push(u))
+        this.$refs.nonFriendsBox.forEach((v) => {
+          v.isSelected = true
+        })
+      } else {
+        this.selectedUsers = []
+        this.$refs.nonFriendsBox.forEach((v) => {
+          v.isSelected = false
+        })
+      }
+      console.log(this.selectedUsers)
     }
   },
   mounted () {
@@ -133,11 +152,12 @@ export default {
       friends: [],
       loadingGroups: false,
       loadingMembers: false,
-      selectedUsers: []
+      selectedUsers: [],
+      selectAll: false
     }
   },
   components: {
-    userBox, ElTabPane, ElButton, groupBox
+    ElCheckbox, userBox, ElTabPane, ElButton, groupBox
   }
 
 }
@@ -181,6 +201,16 @@ export default {
 
   .logout-btn {
     font-size: 14px;
+  }
+
+  .select-box {
+    position: absolute;
+    right: 50px;
+    top: 20px;
+  }
+
+  .add-btn {
+    margin-left: 20px !important;
   }
 
 </style>

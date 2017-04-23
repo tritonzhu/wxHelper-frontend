@@ -14,7 +14,7 @@
 <script>
   export default {
     name: 'user-box',
-    props: ['group', 'user'],
+    props: ['group', 'user', 'selected'],
     computed: {
       avatarSrc: function () {
         return '/api/groups/' + this.group + '/' + this.user.user_name + '/avatar'
