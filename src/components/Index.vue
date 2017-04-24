@@ -3,7 +3,7 @@
     <div class="heading">
       <div class="user-info">
         <img :src="userAvatarSrc" class="avatar">
-        <span class="user-name">{{ userName }}</span>
+        <span class="user-name">{{ user.name }}</span>
       </div>
       <!--<el-button type="danger" icon="el-icon-circle-close" class="logout-btn">关闭</el-button>-->
       <el-button class="logout-btn" @click="logout" size="small">注销</el-button>
@@ -18,28 +18,36 @@
       </el-col>
       <el-col :span="16">
         <el-card v-loading.body="loadingMembers">
-          <el-tabs value="nonFriends">
+          <el-tabs value="nonFriends" @tab-click="selectTab">
             <!--<el-tab-pane disabled=True>-->
               <!--<span slot="label">{{ groupName }} ({{ groupMemberNumber }})</span>-->
             <!--</el-tab-pane>-->
             <el-tab-pane name="nonFriends">
               <span slot="label">陌生人({{ nonFriends.length }})</span>
               <div>
-              <user-box v-for="(user, index) in nonFriends" ref="nonFriendsBox" :key="user.user_name" :user="user" :data-user-name="user.user_name" :index="index" :group="selectedGroup" @select="selectUser"></user-box>
+              <user-box v-for="(user, index) in nonFriends" :key="user.user_name" :user="user" :isFriend="false" ref="nonFriendsBox" :group="selectedGroup" @select="selectUser"></user-box>
               </div>
             </el-tab-pane>
             <el-tab-pane name="friends">
               <span slot="label">好友({{ friends.length }})</span>
-              <user-box v-for="user in friends" :key="user.user_name" :user="user" :group="selectedGroup" @select="selectUser"></user-box>
+              <user-box v-for="user in friends" :key="user.user_name" :user="user" :isFriend="true" :group="selectedGroup" @select="selectUser"></user-box>
             </el-tab-pane>
           </el-tabs>
           <div class="select-box">
-            <el-checkbox v-model="selectAll" @change="selectAllUsers">全选</el-checkbox>
-            <el-button size="small" type="primary" class="add-btn"> 加为好友</el-button>
+            <el-checkbox v-model="selectAll" :disabled="disableAdd" @change="selectAllUsers">全选</el-checkbox>
+            <el-button size="small" type="primary" class="add-btn" :disabled="disableAdd" @click="confirmAdd"> 加为好友</el-button>
           </div>
         </el-card>
       </el-col>
     </el-row>
+    <el-dialog v-model="showDialog" title="添加联系人">
+      <el-form>
+        <el-form-item label="验证消息">
+          <el-input v-model="verifyMessage" autofocus="autofocus" placeholder="请输入验证消息">
+          </el-input>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
     </div>
 </template>
 
@@ -49,6 +57,9 @@ import ElButton from 'element-ui/packages/button/src/button'
 import ElTabPane from 'element-ui/packages/tabs/src/tab-pane'
 import userBox from './UserBox.vue'
 import ElCheckbox from 'element-ui/packages/checkbox/src/checkbox'
+import ElDialog from 'element-ui/packages/dialog/src/component'
+import ElFormItem from 'element-ui/packages/form/src/form-item'
+import ElForm from 'element-ui/packages/form/src/form'
 
 export default {
   name: 'index',
@@ -63,9 +74,8 @@ export default {
     loadFriends: function () {
       this.$http.get('/api/friends').then(
         response => {
-          let user = response.data.friends[0]
-          this.userAvatarSrc = '/api/friends/' + user.user_name + '/avatar'
-          this.userName = user.name
+          this.user = response.data.friends[0]
+          this.userAvatarSrc = '/api/friends/' + this.user.user_name + '/avatar'
         },
         response => {
           console.error('get response error')
@@ -104,12 +114,21 @@ export default {
               }
               )
           this.loadingMembers = false
+          this.disableAdd = false
+//          this.disableAdd = ''
         },
         response => {
           console.error('get response error')
           console.log(response)
         }
       )
+    },
+    selectTab: function (tab) {
+      if (tab.name === 'nonFriends') {
+        this.disableAdd = false
+      } else {
+        this.disabled = 'disabled'
+      }
     },
     selectUser: function (user, isSelected) {
       if (isSelected) {
@@ -120,7 +139,6 @@ export default {
           this.selectedUsers.splice(index, 1)
         }
       }
-      console.log(this.selectedUsers)
     },
     selectAllUsers: function (event) {
       if (this.selectAll) {
@@ -134,7 +152,13 @@ export default {
           v.isSelected = false
         })
       }
-      console.log(this.selectedUsers)
+    },
+    confirmAdd: function (event) {
+      this.showDialog = true
+      let [self] = this.friends.filter(
+        member => member.user_name === this.user.user_name
+      )
+      this.verifyMessage = '我是' + self.name
     }
   },
   mounted () {
@@ -144,7 +168,7 @@ export default {
   data: function () {
     return {
       userAvatarSrc: '',
-      userName: '',
+      user: {},
       groups: [],
       selectedGroup: '',
       groupName: '群成员',
@@ -153,11 +177,14 @@ export default {
       loadingGroups: false,
       loadingMembers: false,
       selectedUsers: [],
-      selectAll: false
+      disableAdd: 'disabled',
+      selectAll: false,
+      showDialog: false,
+      verifyMessage: ''
     }
   },
   components: {
-    ElCheckbox, userBox, ElTabPane, ElButton, groupBox
+    ElForm, ElFormItem, ElDialog, ElCheckbox, userBox, ElTabPane, ElButton, groupBox
   }
 
 }

@@ -14,7 +14,7 @@
 <script>
   export default {
     name: 'user-box',
-    props: ['group', 'user', 'selected'],
+    props: ['group', 'user', 'isFriend'],
     computed: {
       avatarSrc: function () {
         return '/api/groups/' + this.group + '/' + this.user.user_name + '/avatar'
@@ -28,8 +28,10 @@
     },
     methods: {
       select: function (event) {
-        this.isSelected = !this.isSelected
-        this.$emit('select', this.user, this.isSelected)
+        if (!this.isFriend) {
+          this.isSelected = !this.isSelected
+          this.$emit('select', this.user, this.isSelected)
+        }
       }
     },
     data: function () {
