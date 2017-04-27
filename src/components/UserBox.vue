@@ -12,7 +12,9 @@
 </template>
 
 <script>
+  import ElCard from 'element-ui/packages/card/src/main'
   export default {
+    components: {ElCard},
     name: 'user-box',
     props: ['group', 'user', 'isFriend'],
     computed: {
@@ -52,12 +54,14 @@
     margin: 5px;
     width: 200px;
     padding: 5px;
-    border: 1px solid darkgrey;
+    border: 1px solid #d1dbe5;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px 0 rgba(0,0,0,.12), 0 0 6px 0 rgba(0,0,0,.04);
     display: flex;
     align-items: center;
     overflow: hidden;
     color: #324057;
-    background-color: #eff2f7;
+    background-color: #ffffff;
   }
 
   .friend-info:hover {

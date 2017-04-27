@@ -41,12 +41,16 @@
       </el-col>
     </el-row>
     <el-dialog v-model="showDialog" title="添加联系人">
-      <el-form>
+      <el-form labelWidth="80px">
         <el-form-item label="验证消息">
           <el-input v-model="verifyMessage" autofocus="autofocus" placeholder="请输入验证消息">
           </el-input>
         </el-form-item>
       </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="showDialog = false">取消</el-button>
+        <el-button type="primary" @click="addFriends">确定</el-button>
+      </div>
     </el-dialog>
     </div>
 </template>
@@ -115,7 +119,6 @@ export default {
               )
           this.loadingMembers = false
           this.disableAdd = false
-//          this.disableAdd = ''
         },
         response => {
           console.error('get response error')
@@ -127,17 +130,14 @@ export default {
       if (tab.name === 'nonFriends') {
         this.disableAdd = false
       } else {
-        this.disabled = 'disabled'
+        this.disableAdd = true
       }
     },
     selectUser: function (user, isSelected) {
       if (isSelected) {
         this.selectedUsers.push(user)
       } else {
-        let index = this.selectedUsers.findIndex((u) => u.user_name === user.user_name)
-        if (index > -1) {
-          this.selectedUsers.splice(index, 1)
-        }
+        this.deleteUser(this.selectedUsers, user)
       }
     },
     selectAllUsers: function (event) {
@@ -159,6 +159,44 @@ export default {
         member => member.user_name === this.user.user_name
       )
       this.verifyMessage = '我是' + self.name
+    },
+    addFriends: function (event) {
+      this.showDialog = false
+      let added = 0
+      let total = this.selectedUsers.length
+      this.selectedUsers.forEach(user => {
+        added += 1
+        setTimeout(this.addFriend(user, added, total), 5000 * added + Math.floor(Math.random() * 5 * 1000))
+      })
+    },
+    addFriend: function (user, added, total) {
+      this.$http.post('/api/friends', {
+        'user_name': user.user_name,
+        'verify_msg': this.verifyMessage
+      }).then(
+        response => {
+          this.deleteUser(this.nonFriends, user)
+          this.deleteUser(this.selectedUsers, user)
+          this.friends.push(user)
+          this.$notify({
+            title: 'OK',
+            message: '[' + added + '/' + total + '] 已添加' + user.name,
+            type: 'success'
+          })
+        })
+      return this.delay(5000 + Math.floor(Math.random() * 5 * 1000))
+    },
+    deleteUser: function (array, user) {
+      let index = array.findIndex((u) => u.user_name === user.user_name)
+      if (index > -1) {
+        array.splice(index, 1)
+      }
+      return array
+    },
+    delay: function (ms) {
+      return new Promise(function (resolve, reject) {
+        setTimeout(resolve, ms)
+      })
     }
   },
   mounted () {
@@ -167,6 +205,7 @@ export default {
   },
   data: function () {
     return {
+      logged: false,
       userAvatarSrc: '',
       user: {},
       groups: [],
@@ -177,7 +216,7 @@ export default {
       loadingGroups: false,
       loadingMembers: false,
       selectedUsers: [],
-      disableAdd: 'disabled',
+      disableAdd: true,
       selectAll: false,
       showDialog: false,
       verifyMessage: ''
