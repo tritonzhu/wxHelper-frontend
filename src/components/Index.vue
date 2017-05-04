@@ -28,6 +28,12 @@
               <user-box v-for="(user, index) in nonFriends" :key="user.user_name" :user="user" :isFriend="false" ref="nonFriendsBox" :group="selectedGroup" @select="selectUser"></user-box>
               </div>
             </el-tab-pane>
+            <el-tab-pane name="inAdding">
+              <span slot="label">添加中({{ friendsInAdding.length }})</span>
+              <div>
+                <user-box v-for="(user, index) in friendsInAdding" :key="user.user_name" :user="user" :isFriend="true" ref="inAddingBox" :group="selectedGroup" @select="selectUser"></user-box>
+              </div>
+            </el-tab-pane>
             <el-tab-pane name="friends">
               <span slot="label">好友({{ friends.length }})</span>
               <user-box v-for="user in friends" :key="user.user_name" :user="user" :isFriend="true" :group="selectedGroup" @select="selectUser"></user-box>
@@ -117,6 +123,7 @@ export default {
                 return member.is_friend
               }
               )
+          this.friendsInAdding = []
           this.loadingMembers = false
           this.disableAdd = false
         },
@@ -164,9 +171,13 @@ export default {
       this.showDialog = false
       let added = 0
       let total = this.selectedUsers.length
+      let count = 0
       this.selectedUsers.forEach(user => {
-        added += 1
-        setTimeout(this.addFriend(user, added, total), 5000 * added + Math.floor(Math.random() * 5 * 1000))
+        setTimeout(() => {
+          added += 1
+          this.addFriend(user, added, total)
+        }, 5000 * count + Math.floor(Math.random() * 5 * 1000))
+        count += 1
       })
     },
     addFriend: function (user, added, total) {
@@ -177,14 +188,13 @@ export default {
         response => {
           this.deleteUser(this.nonFriends, user)
           this.deleteUser(this.selectedUsers, user)
-          this.friends.push(user)
+          this.friendsInAdding.push(user)
           this.$notify({
             title: 'OK',
-            message: '[' + added + '/' + total + '] 已添加' + user.name,
+            message: '[' + added + '/' + total + '] 已申请添加' + user.name,
             type: 'success'
           })
         })
-      return this.delay(5000 + Math.floor(Math.random() * 5 * 1000))
     },
     deleteUser: function (array, user) {
       let index = array.findIndex((u) => u.user_name === user.user_name)
@@ -192,11 +202,6 @@ export default {
         array.splice(index, 1)
       }
       return array
-    },
-    delay: function (ms) {
-      return new Promise(function (resolve, reject) {
-        setTimeout(resolve, ms)
-      })
     }
   },
   mounted () {
@@ -211,8 +216,10 @@ export default {
       groups: [],
       selectedGroup: '',
       groupName: '群成员',
+      groupMembers: {},
       nonFriends: [],
       friends: [],
+      friendsInAdding: [],
       loadingGroups: false,
       loadingMembers: false,
       selectedUsers: [],
