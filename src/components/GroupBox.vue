@@ -14,7 +14,7 @@
         return '/api/groups/' + this.group.user_name + '/avatar'
       },
       isSelected: function () {
-        return this.group.user_name === this.selectedGroup
+        return this.group.user_name === this.selectedGroup.user_name
       }
     },
     methods: {

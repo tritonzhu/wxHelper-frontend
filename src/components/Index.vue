@@ -39,6 +39,9 @@
               <user-box v-for="user in friends" :key="user.user_name" :user="user" :isFriend="true" :group="selectedGroup" @select="selectUser"></user-box>
             </el-tab-pane>
           </el-tabs>
+          <div class="search-box">
+            <el-input v-model="searchText" placeholder="搜索联系人" icon="search" @change="searchFriends"></el-input>
+          </div>
           <div class="select-box">
             <el-checkbox v-model="selectAll" :disabled="disableAdd" @change="selectAllUsers">全选</el-checkbox>
             <el-button size="small" type="primary" class="add-btn" :disabled="disableAdd" @click="confirmAdd"> 加为好友</el-button>
@@ -70,6 +73,7 @@ import ElCheckbox from 'element-ui/packages/checkbox/src/checkbox'
 import ElDialog from 'element-ui/packages/dialog/src/component'
 import ElFormItem from 'element-ui/packages/form/src/form-item'
 import ElForm from 'element-ui/packages/form/src/form'
+import ElInput from 'element-ui/packages/input/src/input'
 
 export default {
   name: 'index',
@@ -107,10 +111,10 @@ export default {
       )
     },
     selectGroup: function (group) {
-      this.selectedGroup = group.user_name
+      this.selectedGroup = group
       this.groupName = group.name
       this.loadingMembers = true
-      this.$http.get('/api/groups/' + this.selectedGroup + '/members').then(
+      this.$http.get('/api/groups/' + this.selectedGroup.user_name + '/members').then(
         response => {
           let members = response.data.members
           this.nonFriends = members.filter(
@@ -124,6 +128,9 @@ export default {
               }
               )
           this.friendsInAdding = []
+          this.original.friends = this.friends
+          this.original.nonFriends = this.nonFriends
+          this.original.friendsInAdding = this.friendsInAdding
           this.loadingMembers = false
           this.disableAdd = false
         },
@@ -202,6 +209,27 @@ export default {
         array.splice(index, 1)
       }
       return array
+    },
+    searchFriends: function (event) {
+      if (!this.searchText) {
+        this.friends = this.original.friends
+        this.nonFriends = this.original.nonFriends
+        this.friendsInAdding = this.original.friendsInAdding
+//        this.selectGroup(this.selectedGroup)
+      }
+      console.log(this.searchText)
+      this.nonFriends = this.original.nonFriends.filter(
+          member => {
+            return member.name.indexOf(this.searchText) > -1
+          })
+      this.friends = this.original.friends.filter(
+        member => {
+          return member.name.indexOf(this.searchText) > -1
+        })
+      this.friendsInAdding = this.original.friendsInAdding.filter(
+        member => {
+          return member.name.indexOf(this.searchText) > -1
+        })
     }
   },
   mounted () {
@@ -214,7 +242,7 @@ export default {
       userAvatarSrc: '',
       user: {},
       groups: [],
-      selectedGroup: '',
+      selectedGroup: {user_name: ''},
       groupName: '群成员',
       groupMembers: {},
       nonFriends: [],
@@ -223,14 +251,16 @@ export default {
       loadingGroups: false,
       loadingMembers: false,
       selectedUsers: [],
+      searchText: '',
       disableAdd: true,
       selectAll: false,
       showDialog: false,
-      verifyMessage: ''
+      verifyMessage: '',
+      original: {}
     }
   },
   components: {
-    ElForm, ElFormItem, ElDialog, ElCheckbox, userBox, ElTabPane, ElButton, groupBox
+    ElInput, ElForm, ElFormItem, ElDialog, ElCheckbox, userBox, ElTabPane, ElButton, groupBox
   }
 
 }
@@ -274,6 +304,13 @@ export default {
 
   .logout-btn {
     font-size: 14px;
+  }
+
+  .search-box {
+    width: 120px;
+    position: absolute;
+    right: 220px;
+    top: 20px;
   }
 
   .select-box {

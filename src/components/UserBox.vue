@@ -19,7 +19,7 @@
     props: ['group', 'user', 'isFriend'],
     computed: {
       avatarSrc: function () {
-        return '/api/groups/' + this.group + '/' + this.user.user_name + '/avatar'
+        return '/api/groups/' + this.group.user_name + '/' + this.user.user_name + '/avatar'
       },
       isMen: function () {
         return this.user.sex === 1
