@@ -11,7 +11,9 @@
     <el-row :gutter="10">
       <el-col :span="8">
         <el-card v-loading.body="loadingGroups">
-          <div slot="header">群列表({{ groups.length }})</div>
+          <div slot="header">
+            <span>群列表({{ groups.length }})</span>
+          </div>
           <group-box v-for="group in groups" :key="group.user_name" :group="group"
                      :selectedGroup="selectedGroup" @select="selectGroup"></group-box>
         </el-card>
@@ -74,10 +76,24 @@ import ElDialog from 'element-ui/packages/dialog/src/component'
 import ElFormItem from 'element-ui/packages/form/src/form-item'
 import ElForm from 'element-ui/packages/form/src/form'
 import ElInput from 'element-ui/packages/input/src/input'
+import Icon from 'vue-awesome/components/Icon'
 
 export default {
   name: 'index',
   methods: {
+    checkLogin: function () {
+      this.$http.get('/api/checklogin').then(
+        response => {
+          if (response.data !== 'true') {
+            this.logout()
+          }
+        },
+        response => {
+          this.logout()
+        }
+      )
+      setTimeout(() => this.checkLogin(), 5000)
+    },
     logout: function () {
       this.$http.get('/api/logout').then(
         response => {
@@ -215,7 +231,6 @@ export default {
         this.friends = this.original.friends
         this.nonFriends = this.original.nonFriends
         this.friendsInAdding = this.original.friendsInAdding
-//        this.selectGroup(this.selectedGroup)
       }
       console.log(this.searchText)
       this.nonFriends = this.original.nonFriends.filter(
@@ -233,6 +248,7 @@ export default {
     }
   },
   mounted () {
+    this.checkLogin()
     this.loadFriends()
     this.loadGroups()
   },
@@ -260,7 +276,7 @@ export default {
     }
   },
   components: {
-    ElInput, ElForm, ElFormItem, ElDialog, ElCheckbox, userBox, ElTabPane, ElButton, groupBox
+    Icon, ElInput, ElForm, ElFormItem, ElDialog, ElCheckbox, userBox, ElTabPane, ElButton, groupBox
   }
 
 }
