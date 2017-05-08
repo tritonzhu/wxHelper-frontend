@@ -1,4 +1,4 @@
-<template>
+<template xmlns="http://www.w3.org/1999/html">
   <div class="container">
     <div class="heading">
       <div class="user-info">
@@ -6,13 +6,24 @@
         <span class="user-name">{{ user.name }}</span>
       </div>
       <!--<el-button type="danger" icon="el-icon-circle-close" class="logout-btn">关闭</el-button>-->
-      <el-button class="logout-btn" @click="logout" size="small">注销</el-button>
+      <el-dropdown trigger="click" class="more-menu" @command="handleCommand">
+          <span class="el-dropdown-link">
+            <i class="el-icon-more"></i>
+          </span>
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item command="logout">注销</el-dropdown-item>
+          </el-dropdown-menu>
+      </el-dropdown>
+      <!--<el-button class="logout-btn" @click="logout" size="small">注销</el-button>-->
     </div>
     <el-row :gutter="10">
       <el-col :span="8">
         <el-card v-loading.body="loadingGroups">
           <div slot="header">
             <span>群列表({{ groups.length }})</span>
+            <span class="refresh-icon" @click="loadGroups" title="刷新">
+              <icon name="refresh"></icon>
+            </span>
           </div>
           <group-box v-for="group in groups" :key="group.user_name" :group="group"
                      :selectedGroup="selectedGroup" @select="selectGroup"></group-box>
@@ -76,6 +87,11 @@ import ElDialog from 'element-ui/packages/dialog/src/component'
 import ElFormItem from 'element-ui/packages/form/src/form-item'
 import ElForm from 'element-ui/packages/form/src/form'
 import ElInput from 'element-ui/packages/input/src/input'
+import ElDropdown from 'element-ui/packages/dropdown/src/dropdown'
+import ElDropdownMenu from 'element-ui/packages/dropdown/src/dropdown-menu'
+import ElDropdownItem from 'element-ui/packages/dropdown/src/dropdown-item'
+import Icon from 'vue-awesome/components/Icon'
+import 'vue-awesome/icons/refresh'
 
 export default {
   name: 'index',
@@ -93,12 +109,20 @@ export default {
       )
       setTimeout(() => this.checkLogin(), 5000)
     },
+    handleCommand: function (command) {
+      if (command === 'logout') this.logout()
+      else console.log(command)
+    },
     logout: function () {
       this.$http.get('/api/logout').then(
         response => {
           this.$router.push({path: 'login'})
         }
       )
+    },
+    showMore: function () {
+      // TODO
+      console.log('clicked')
     },
     loadFriends: function () {
       this.$http.get('/api/friends').then(
@@ -116,7 +140,11 @@ export default {
       this.loadingGroups = true
       this.$http.get('/api/groups').then(
         response => {
-          this.groups = response.data.groups
+          this.groups = response.data.groups.filter(
+              group => {
+                return group.user_name.startsWith('@@')
+              }
+          )
           this.loadingGroups = false
         },
         response => {
@@ -275,7 +303,7 @@ export default {
     }
   },
   components: {
-    ElInput, ElForm, ElFormItem, ElDialog, ElCheckbox, userBox, ElTabPane, ElButton, groupBox
+    ElDropdownItem, ElDropdownMenu, ElDropdown, Icon, ElInput, ElForm, ElFormItem, ElDialog, ElCheckbox, userBox, ElTabPane, ElButton, groupBox
   }
 
 }
@@ -310,6 +338,15 @@ export default {
     height: 48px;
   }
 
+  .refresh-icon {
+    float: right;
+  }
+
+  .fa-icon {
+    width: auto;
+    height: 12px;
+    color: #475669;
+  }
 
   .user-name {
     color: #1F2D3D;
@@ -317,8 +354,8 @@ export default {
     vertical-align: middle;
   }
 
-  .logout-btn {
-    font-size: 14px;
+  .more-menu {
+    margin-right: 20px;
   }
 
   .search-box {
