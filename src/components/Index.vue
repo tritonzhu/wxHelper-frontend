@@ -76,7 +76,6 @@ import ElDialog from 'element-ui/packages/dialog/src/component'
 import ElFormItem from 'element-ui/packages/form/src/form-item'
 import ElForm from 'element-ui/packages/form/src/form'
 import ElInput from 'element-ui/packages/input/src/input'
-import Icon from 'vue-awesome/components/Icon'
 
 export default {
   name: 'index',
@@ -276,7 +275,7 @@ export default {
     }
   },
   components: {
-    Icon, ElInput, ElForm, ElFormItem, ElDialog, ElCheckbox, userBox, ElTabPane, ElButton, groupBox
+    ElInput, ElForm, ElFormItem, ElDialog, ElCheckbox, userBox, ElTabPane, ElButton, groupBox
   }
 
 }
