@@ -130,10 +130,10 @@ export default {
       this.loadFriends()
       this.loadGroups(reloading)
 
-      this.timer = setInterval(() => {
-        this.loadFriends()
-        this.loadGroups()
-      }, 60000)
+//      this.timer = setInterval(() => {
+//        this.loadFriends()
+//        this.loadGroups()
+//      }, 60000)
     },
     loadFriends: function () {
       this.$http.get('/api/friends').then(
@@ -158,7 +158,7 @@ export default {
         }
       )
     },
-    loadGroups: function (reloading = true) {
+    loadGroups: function (reloading = false) {
       this.loadingGroups = reloading
       this.$http.get('/api/groups').then(
         response => {
@@ -203,9 +203,10 @@ export default {
               }
               )
           this.friendsInAdding = this.allFriendsInAdding.filter(
-              member => {
-                return members.indexOf(member) > -1
-              }
+              member => members.map(m => m.user_name).indexOf(member.user_name) > -1
+          )
+          this.friendsInAdding.forEach(
+              member => this.deleteUser(this.nonFriends, member)
           )
           this.original.friends = this.friends
           this.original.nonFriends = this.nonFriends
@@ -274,6 +275,7 @@ export default {
         response => {
           this.deleteUser(this.nonFriends, user)
           this.deleteUser(this.selectedUsers, user)
+          this.friendsInAdding.push(user)
           this.allFriendsInAdding.push(user)
           this.$notify({
             title: 'OK',
