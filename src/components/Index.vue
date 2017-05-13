@@ -107,7 +107,11 @@ export default {
           this.logout()
         }
       )
-      setTimeout(() => this.checkLogin(), 5000)
+    },
+    checkLoginPolling: function () {
+      this.checkTimer = setInterval(() => {
+        this.checkLogin()
+      }, 5000)
     },
     handleCommand: function (command) {
       if (command === 'logout') this.logout()
@@ -116,19 +120,37 @@ export default {
     logout: function () {
       this.$http.get('/api/logout').then(
         response => {
+          this.clearInterval(this.timer)
+          this.clearInterval(this.checkTimer)
           this.$router.push({path: 'login'})
         }
       )
     },
-    showMore: function () {
-      // TODO
-      console.log('clicked')
+    loadData: function (reloading = false) {
+      this.loadFriends()
+      this.loadGroups(reloading)
+
+      this.timer = setInterval(() => {
+        this.loadFriends()
+        this.loadGroups()
+      }, 60000)
     },
     loadFriends: function () {
       this.$http.get('/api/friends').then(
         response => {
-          this.user = response.data.friends[0]
+          if (this.allFriends.length > 0) {
+            this.oldFriends = this.allFriends
+          }
+
+          this.allFriends = response.data.friends
+          this.user = this.allFriends[0]
           this.userAvatarSrc = '/api/friends/' + this.user.user_name + '/avatar'
+
+          if (this.oldFriends.length > 0) {
+            this.newFriends = this.allFriends.filter(
+              friend => this.oldFriends.map(old => old.user_name).indexOf(friend.user_name) === -1
+            )
+          }
         },
         response => {
           console.error('get response error')
@@ -136,15 +158,25 @@ export default {
         }
       )
     },
-    loadGroups: function () {
-      this.loadingGroups = true
+    loadGroups: function (reloading = true) {
+      this.loadingGroups = reloading
       this.$http.get('/api/groups').then(
         response => {
-          this.groups = response.data.groups.filter(
-              group => {
-                return group.user_name.startsWith('@@')
-              }
+          let groups = response.data.groups.filter(
+            group => {
+              return group.user_name.startsWith('@@')
+            }
           )
+          if (reloading) {
+            this.groups = groups
+          } else {
+            let newGroups = groups.filter(
+              group => this.groups.map(g => g.user_name).indexOf(group.user_name) === -1
+            )
+            newGroups.forEach(
+              group => this.groups.push(group)
+            )
+          }
           this.loadingGroups = false
         },
         response => {
@@ -170,7 +202,11 @@ export default {
                 return member.is_friend
               }
               )
-          this.friendsInAdding = []
+          this.friendsInAdding = this.allFriendsInAdding.filter(
+              member => {
+                return members.indexOf(member) > -1
+              }
+          )
           this.original.friends = this.friends
           this.original.nonFriends = this.nonFriends
           this.original.friendsInAdding = this.friendsInAdding
@@ -238,7 +274,7 @@ export default {
         response => {
           this.deleteUser(this.nonFriends, user)
           this.deleteUser(this.selectedUsers, user)
-          this.friendsInAdding.push(user)
+          this.allFriendsInAdding.push(user)
           this.$notify({
             title: 'OK',
             message: '[' + added + '/' + total + '] 已申请添加' + user.name,
@@ -276,11 +312,25 @@ export default {
   },
   mounted () {
     this.checkLogin()
-    this.loadFriends()
-    this.loadGroups()
+    this.checkLoginPolling()
+    this.loadData(true)
+  },
+  watch: {
+    newFriends: function (friends) {
+      friends.forEach(
+          friend => {
+            this.$notify({
+              title: '新好友',
+              message: '已添加' + friend.name + '为好友'
+            })
+          }
+      )
+    }
   },
   data: function () {
     return {
+      timer: null,
+      checkTimer: null,
       logged: false,
       userAvatarSrc: '',
       user: {},
@@ -291,6 +341,7 @@ export default {
       nonFriends: [],
       friends: [],
       friendsInAdding: [],
+      allFriendsInAdding: [],
       loadingGroups: false,
       loadingMembers: false,
       selectedUsers: [],
@@ -299,7 +350,10 @@ export default {
       selectAll: false,
       showDialog: false,
       verifyMessage: '',
-      original: {}
+      original: {},
+      allFriends: [],
+      oldFriends: [],
+      newFriends: []
     }
   },
   components: {
